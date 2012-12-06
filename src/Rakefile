@@ -3,4 +3,10 @@ namespace :data do
   task :fetch do
     sh "bin/fetch userbase-stats data"
   end
+
+  desc 'Marshal data into Ruby objects on the filesystem'
+  task :marshal do
+    mkdir_p "data/objects"
+    sh "bin/marshal data data/objects"
+  end
 end
