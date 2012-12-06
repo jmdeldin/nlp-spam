@@ -1,0 +1,6 @@
+namespace :data do
+  desc 'Fetch data from the userbase-stats MySQL database'
+  task :fetch do
+    sh "bin/fetch userbase-stats data"
+  end
+end
