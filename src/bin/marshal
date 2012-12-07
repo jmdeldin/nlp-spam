@@ -29,13 +29,14 @@ if $0 == __FILE__
   obj_dir = Pathname(obj_dir)
 
   %w(testing training).each do |type|
+    samples = []
     [:ham, :spam].each do |klass|
       dir = html_dir.join(type, klass.to_s)
-      samples = load_dir(dir, klass)
+      samples += load_dir(dir, klass)
+    end
 
-      fork do
-        File.open(obj_dir + "#{type}.obj", 'w') { |f| f.puts Marshal.dump(samples) }
-      end
+    fork do
+      File.open(obj_dir + "#{type}.obj", 'w') { |f| f.puts Marshal.dump(samples) }
     end
   end
 end
