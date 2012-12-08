@@ -13,9 +13,10 @@
 \usepackage{algorithm}
 \usepackage{algorithmicx}
 \usepackage{algpseudocode}
+\DeclareMathOperator*{\argmax}{arg\,max}
 \title{Spam}
 \author{Jon-Michael Deldin}
-\date{\today}
+\date{December 2012}
 \begin{document}
 
 \doublespace
@@ -67,6 +68,7 @@ misspellings, narrowing the search space of the classifier.
     the highest accuracy
   \item Determine which n-gram model yields better results for both word and
     character grams
+    Determine whether unigram with smoothing has an effect
 \end{enumerate}
 
 \section{Naive Bayes Classifier}
@@ -74,12 +76,28 @@ The research presented here utilizes a naive Bayes classifier to classify spam
 and ham. These classifiers are very effective for classifying
 documents\cite[p182]{mitchell}, especially at spam
 classification\cite{which-nb}. In a naive Bayes classifier, each feature is
-assumed to be independent. In this paper, I used a bag-of-words model to
-capture the frequency of each word appearing in a document. In a later
+assumed to be independent, which in text classification, assumes terms will
+independently occur in documents. In this paper, I used a bag-of-words model
+to capture the frequency of each word appearing in a document. In a later
 section, single-word (unigram) models are evaluated against bigrams, trigrams,
-and character-grams.
+and character-grams. For example, a bigram would count ``not spam'' as a term,
+instead of ``not'' and ``spam'', which may have different meaning in the
+document.
 
-Additionally, these can be FIXME laplace smoothed.
+One issue worth discussing is smoothing. The traditional naive Bayes estimates
+the probability of a document belonging to a class as the number of times an
+event occurs, $n_c$, over the total number of events $n$. When the number of
+times an event occurs is small, the probability might be 0, which might not be
+true. Thus, a smoothing parameter can be used. In this paper, we investigate
+the effect of LaPlace smoothing, which defines the probability of an event
+occurring as
+
+\[ \Pr[\mathrm{x}] = \frac{{\sc count}(x) + k}{N + k\vert x \vert} \]
+
+where $x$ is the class, {\sc(count)}($x$) returns the number of items matching
+that class, $k$ is the smoothing parameter, $N$ is the total number of itmes,
+and $\vert x\vert$ returns the total number of options for that class. USe to
+avoid overfitting.
 
 \section{Evaluation}
 $k$-fold cross-validation is used to compare the performance of the classifier
@@ -126,7 +144,8 @@ users for spammers as much as possible.
 The data consist of user biographies -- Unicode text fields -- spanning
 2008-09-03--2012-11-28. These profiles\footnote{I will use the terms
   ``profile'' and ``biography'' interchangeably from this point forward.} are
-from AskNature's MySQL database, and they were processed as described in
+from AskNature's MySQL database, and the spam ones were manually annotated by
+AskNature staff during that period. Each entry was processed as described in
 Algorithm~\ref{algo:preprocess} before being saved to disk as plain text files
 for easier distribution. Empty profiles were not included.
 
@@ -138,10 +157,13 @@ wide standard deviation for both classes is explained by two factors: Users
 are not required to fill out the biography field, and even if they choose to,
 no stated minimum or maximum requirements exist. We will use the floor of the
 minimum mean length, which is 32 words per biography. This prevents too much
-data from being rejected.
+data from being rejected, but it whittles our samples down to 4,725 spam
+entries to 1,730 ham entries.
 
 Next, training and testing sets must be developed. The algorithm for doing
-such is described in Algorithm~\ref{algo:segment}.
+such is described in Algorithm~\ref{algo:segment}. 100 randomly selected
+samples were set aside for testing from each class, which leaves 1,630 ham and
+4,625 spam entries for training.
 
 \begin{table}
   \centering
@@ -157,14 +179,18 @@ such is described in Algorithm~\ref{algo:segment}.
   \end{tabular}
 \end{table}
 
+\begin{algorithm}
+  \caption{Segmenting the data samples into training and test sets}
+  \label{algo:segment}
+  \begin{enumerate}
+  \item Create a list of all profiles and randomize it
+  \item Select all entries with biographies of 32 or more words
+  \item For each class (ham and spam), randomly select 100 entries for testing
+    and write to a new \texttt{pruned/testing} directory
+  \item Write the remaining samples to \texttt{pruned/training}
+  \end{enumerate}
+\end{algorithm}
 
-The total corpus consists of 3,144 ham profiles and 18,461 spam profiles saved
-as HTML fragments. However, for experimentation, 3,000 samples from each class
-were randomly selected without replacement kept for efficiency. Each spam profile was identified by members of the
-AskNature staff, and the other profiles are assumed to be ham. Each sample is
-pre-processed in the following manner:
-DUE TO THE DISPROPORTIONATE AMOUNT OF SPAM, IT HAS BEEN CAPPED AT 3000 by
-randomly shuffling. SAME FOR HAM. and then droppingc
 
 \begin{algorithm}
 \begin{enumerate}
@@ -211,7 +237,7 @@ following test was performed.
 
   \State {\sc cross-validate}(limited-samples)
 
-  \If{accuracy > best-accuracy}
+  \If{accuracy $>$ best-accuracy}
   \State{best-accuracy $\gets$ accuracy}
   \State{best-ratio $\gets$ \{ham-ratio, spam-ratio\}}
   \EndIf
@@ -262,6 +288,8 @@ STASTICAL SIGNIFICANCE OF ACCURACY DIFFERENCE
 \section{Discussion}
 \label{sec-4}
 \section{Conclusion}
+It would be good to combine this with another one -- to form an ensemble (ref
+9,22 from spam paper)
 \label{sec-5}
 
 
