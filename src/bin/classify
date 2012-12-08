@@ -1,0 +1,19 @@
+#! /usr/bin/env ruby
+#
+# Classify a given text file based on a training set.
+#
+
+require_relative '../lib/classifier'
+
+abort "Usage: #{File.basename(__FILE__)} CLASSIFIER_OBJ TEST_OBJ" if ARGV.size < 2
+classifier = Classifier.load(ARGV.shift)
+testing = Classifier.load(ARGV.shift)
+
+testing.each do |sample|
+  pred = classifier.classify(sample.value)
+  if pred == sample.kind
+    puts "TRUE  (#{pred} == #{sample.kind})"
+  else
+    puts "FALSE (#{pred} != #{sample.kind})"
+  end
+end

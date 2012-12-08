@@ -1,0 +1,17 @@
+#! /usr/bin/env ruby
+#
+
+require_relative '../lib/classifier'
+
+if ARGV.size != 4
+  abort "Usage: #{File.basename(__FILE__)} TRAINING CLASSIFIER LAPLACE ATOMIZER"
+end
+
+training_fn, classifier_fn, laplace, atomizer = ARGV
+laplace = Integer(laplace)
+atomizer = atomizer.to_sym
+
+c = Classifier.fetch(laplace, atomizer).call()
+samples = Classifier.load(training_fn)
+Classifier.train_up(c, samples)
+Classifier.save(c, classifier_fn)

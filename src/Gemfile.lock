@@ -1,0 +1,22 @@
+GEM
+  remote: http://rubygems.org/
+  specs:
+    fast-stemmer (1.0.1)
+    mysql (2.9.0)
+    nokogiri (1.5.5)
+    parallel (0.5.21)
+    sanitize (2.0.3)
+      nokogiri (>= 1.4.4, < 1.6)
+    sequel (3.42.0)
+    text (1.2.1)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  fast-stemmer
+  mysql
+  parallel
+  sanitize
+  sequel
+  text

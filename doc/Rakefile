@@ -1,0 +1,7 @@
+task :paper do
+  sh "latexmk -pdf paper"
+end
+
+task :clean do
+  sh "latexmk -c -pdf paper"
+end

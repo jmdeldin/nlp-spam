@@ -1,0 +1,38 @@
+#! /usr/bin/env ruby
+#
+# Take a set of random ham and spam samples
+#
+
+require 'fileutils'
+require 'parallel'
+require_relative '../lib/cli'
+
+usage(__FILE__, "HUGE_CORPUS OUTPUT_DIR LIMIT_EACH_CLASS") if ARGV.size != 3
+
+def strip_parent(dir)
+  dir.split('/').drop(1).join('/')
+end
+
+source, dest, limit = ARGV
+limit = Integer(limit)
+FileUtils.rm_rf dest
+
+Dir[File.join(source, '*')].each do |dir|
+  subpath = strip_parent(dir)
+  newdest = File.join(dest, subpath)
+  FileUtils.mkdir_p newdest
+  files = Dir[File.join(dir, '*.html')].shuffle
+  keep = []
+  i = 0
+  while i < limit
+    if rand() >= 0.5
+      keep << files[i]
+      i += 1
+    end
+  end
+
+  Parallel.map(keep, :in_processes => 4) do |f|
+    FileUtils.cp f, File.join(newdest, File.basename(f))
+  end
+
+end

@@ -1,0 +1,27 @@
+#! /usr/bin/env ruby
+#
+# Serialize HTML file as Sample objects.
+#
+
+require 'fileutils'
+require 'pathname'
+require 'parallel'
+require_relative '../lib/sample'
+require_relative '../lib/cli'
+
+if $0 == __FILE__
+  abort "Usage: #{File.basename(__FILE__)} HTML_DIR" unless ARGV.size == 1
+  html_dir = Pathname(File.expand_path(ARGV.shift))
+  puts "kind,words"
+
+  samples = []
+  [:ham, :spam].each do |klass|
+    dir = html_dir.join(klass.to_s)
+    samples += load_dir(dir, klass)
+  end
+
+  samples.each do |s|
+    len = s.value.split(/[\s-]/).size
+    puts "#{s.kind},#{len}"
+  end
+end

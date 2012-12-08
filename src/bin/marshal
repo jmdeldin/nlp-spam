@@ -7,22 +7,10 @@ require 'fileutils'
 require 'pathname'
 require 'parallel'
 require_relative '../lib/sample'
-
-# Load training data into an array
-def load_dir(dir, klass)
-  files = Dir[File.join(dir, '*.html')]
-  out = []
-
-  Parallel.map(files, :in_threads => 200) do |f|
-    body = File.read(f)
-    out << Sample.new(body, klass, f)
-  end
-
-  out
-end
+require_realtive '../lib/cli'
 
 if $0 == __FILE__
-  abort "Usage: #{File.basename(__FILE__)} HTML_DIR OBJ_DIR" unless ARGV.size == 2
+  usage(__FILE__, "HTML_DIR OBJ_DIR") unless ARGV.size == 2
   html_dir = Pathname(File.expand_path(ARGV.shift))
   obj_dir  = File.expand_path(ARGV.shift)
   FileUtils.mkdir_p obj_dir

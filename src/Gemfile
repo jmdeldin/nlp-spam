@@ -1,0 +1,13 @@
+source :rubygems
+
+# Database
+gem 'mysql'
+gem 'sequel'
+
+# Utilities
+gem 'parallel'
+gem 'sanitize'
+
+# Classification
+gem 'fast-stemmer'
+gem 'text'

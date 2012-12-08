@@ -1,0 +1,83 @@
+#! /usr/bin/env ruby
+#
+# Determine the best ratio of spam:ham messages.
+#
+
+require 'parallel'
+
+require_relative '../lib/cli'
+require_relative '../lib/classifier'
+require_relative '../lib/cross_validate'
+
+# Find the best ratio of spam to ham for a number of N samples.
+def find_best_ratio(samples, n, step_sz)
+  spam = samples.select { |s| s.kind == :spam }.shuffle
+  ham  = samples.select { |s| s.kind == :ham }.shuffle
+
+  # bests = {
+  #   :accuracy  => {:step => 0, :value => 0.0, :ratio => nil, :mat => nil},
+  #   :precision => {:step => 0, :value => 0.0, :ratio => nil, :mat => nil},
+  #   :recall    => {:step => 0, :value => 0.0, :ratio => nil, :mat => nil},
+  # }
+
+  steps = {}
+
+  (step_sz).step(0.99, step_sz).each do |i|
+    ratio = {:spam => (n * i).round, :ham => (n * (1 - i)).round}
+    limited_samples = spam.take(ratio[:spam]) + ham.take(ratio[:ham])
+
+    STDERR.puts "Step %0.2f, #{ratio.inspect}, n=#{ratio.values.reduce(:+)}" % i
+
+    mat = CrossValidate.run(limited_samples, Classifier.fetch(0, :unigram))
+
+    steps[i] = {:ratio => ratio, :mat => mat}
+    # if mat[:accuracy] > bests[:accuracy][:value]
+    #   bests[:accuracy] = {:step => i, :value => mat[:accuracy], :ratio => ratio, :mat => mat}
+    # end
+
+    # if mat[:precision] > bests[:precision][:value]
+    #   bests[:precision] = {:step => i, :value => mat[:precision], :ratio => ratio, :mat => mat}
+    # end
+
+    # if mat[:recall] > bests[:recall][:value]
+    #   bests[:recall] = {:step => i, :value => mat[:recall], :ratio => ratio, :mat => mat}
+    # end
+  end
+
+  steps
+  # bests
+end
+
+def print_row(step_i, tbl)
+  fields = [
+    "%0.2f" % step_i,
+    tbl[:ratio][:spam],
+    tbl[:ratio][:ham],
+    tbl[:mat][:total],
+    tbl[:mat][:accuracy],
+    tbl[:mat][:precision],
+    tbl[:mat][:recall],
+    tbl[:mat][:true_pos],
+    tbl[:mat][:true_neg],
+    tbl[:mat][:false_pos],
+    tbl[:mat][:false_neg],
+  ]
+  puts fields.join(",")
+end
+
+if $0 == __FILE__
+  usage(__FILE__, "TRAINING_OBJ LIMIT STEP_SIZE TIMES") if ARGV.size != 4
+
+  samples = Classifier.load(ARGV.shift).shuffle()
+  limit = Integer(ARGV.shift)
+  step_sz = Float(ARGV.shift)
+  count = Integer(ARGV.shift)
+
+  puts %w(step spam ham total accuracy precision recall tp tn fp fn).join(",")
+  count.times do |i|
+    STDERR.puts "i = #{i}"
+    find_best_ratio(samples, limit, step_sz).each do |step_i, tbl|
+      print_row(step_i, tbl)
+    end
+  end
+end

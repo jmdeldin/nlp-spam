@@ -1,12 +1,36 @@
+def rscript(file)
+  sh "cd analysis && Rscript #{file}"
+end
+
 namespace :data do
   desc 'Fetch data from the userbase-stats MySQL database'
   task :fetch do
     sh "bin/fetch userbase-stats data"
   end
 
+  desc 'Collect the profile lengths of the processed samples'
+  task :length do
+    sh "bin/length data/processed > data/results/body-length.csv"
+  end
+
   desc 'Marshal data into Ruby objects on the filesystem'
   task :marshal do
     mkdir_p "data/objects"
     sh "bin/marshal data data/objects"
+  end
+end
+
+namespace :analyze do
+  desc 'Analyze data/results/body-length.csv'
+  task :length do
+    rscript 'body-length.R'
+  end
+end
+
+namespace :classifier do
+  desc 'Initialize and train a classifier'
+  task :train do
+    laplace
+    sh "bin/train data/objects/training.obj data/objects/classifier.obj"
   end
 end
