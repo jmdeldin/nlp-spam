@@ -1,13 +1,13 @@
 #! /usr/bin/env ruby
 #
-# Serialize HTML file as Sample objects.
+# Serialize HTML files as Sample objects.
 #
 
 require 'fileutils'
 require 'pathname'
 require 'parallel'
 require_relative '../lib/sample'
-require_realtive '../lib/cli'
+require_relative '../lib/cli'
 
 if $0 == __FILE__
   usage(__FILE__, "HTML_DIR OBJ_DIR") unless ARGV.size == 2

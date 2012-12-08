@@ -1,0 +1,23 @@
+#! /usr/bin/env ruby
+#
+# Load a Pry session with the various serialized objects for debugging.
+#
+
+require 'pry'
+require_relative '../lib/cli'
+require_relative '../lib/classifier'
+
+usage(__FILE__, "OBJ_DIR") if ARGV.size != 1
+objd = ARGV.shift
+
+def sel(ary)
+  {
+    :spam => ary.select { |x| x.kind == :spam },
+    :ham => ary.select { |x| x.kind == :ham },
+  }
+end
+
+training = sel(Classifier.load(File.join(objd, 'training.obj')))
+testing = sel(Classifier.load(File.join(objd, 'testing.obj')))
+
+pry.binding

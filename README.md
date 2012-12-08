@@ -23,3 +23,11 @@ Preliminary Steps
 3. Determine the minimum word length
 
         rake analyze:length
+
+4. With the minimum length, segment the data into training and testing sets
+
+        min=32 rake data:segment
+
+5. Finally, serialize the data so it's faster to work with
+
+        rake data:marshal

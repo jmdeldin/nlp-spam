@@ -13,6 +13,18 @@ namespace :data do
     sh "bin/length data/processed > data/results/body-length.csv"
   end
 
+  desc 'Segment data into training and testing sets. Define min var beforehand'
+  task :segment do
+    abort("run as min=32 rake data:segment") unless ENV['min']
+    sh "bin/segment data/processed data/pruned #{ENV['min']} 100"
+
+    %w(training testing).each do |type|
+      %w(ham spam).each do |k|
+        puts "#{type}: #{k}: " + `ls data/pruned/#{type}/#{k} | wc -l`.strip
+      end
+    end
+  end
+
   desc 'Marshal data into Ruby objects on the filesystem'
   task :marshal do
     mkdir_p "data/objects"

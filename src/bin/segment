@@ -1,0 +1,61 @@
+#! /usr/bin/env ruby
+#
+# Creates a set of training and testing samples that meet a word minimum.
+#
+# Assumes the HUGE_CORPUS_BASE_DIR and OUTPUT_BASE_DIR share a parent (e.g.,
+# "data").
+#
+
+require 'fileutils'
+require 'pathname'
+require 'parallel'
+require_relative '../lib/cli'
+require_relative '../lib/extensions'
+
+def common_parent(dir1, dir2)
+  File.dirname(dir1).split('/') & File.dirname(dir2).split('/')
+end
+
+# Removes the first component of a path
+def strip_parent(dir)
+  dir.split('/').drop(1).join('/')
+end
+
+if ARGV.size != 4
+  usage __FILE__, "HUGE_CORPUS_BASE_DIR OUTPUT_BASE_DIR MIN_WORDS TEST_LIMIT"
+end
+
+source, dest = ARGV.shift(2)
+min_words, tlimit = ARGV.shift(2).map { |x| Integer(x) }
+
+FileUtils.rm_rf dest
+
+%w(ham spam).each do |klass|
+  srcd = File.join(source, klass)
+
+  traind = Pathname(File.join(dest, "training/#{klass}"))
+  testd = Pathname(File.join(dest, "testing/#{klass}"))
+
+  FileUtils.mkdir_p traind
+  FileUtils.mkdir_p testd
+
+  i = 0
+  keep = []
+
+  Dir[File.join(srcd, '*.html')].to_a.shuffle.each do |f|
+    fn = File.basename(f)
+    body = File.read(f).strip
+    next if body.to_words.size < min_words # prune
+
+    if i < tlimit && rand() >= 0.5
+      keep << -> { FileUtils.cp f, testd.join(fn) }
+      i += 1
+    else
+      keep << -> { FileUtils.cp f, traind.join(fn) }
+    end
+  end
+
+  Parallel.map(keep, :in_processes => 6) do |f|
+    f.call()
+  end
+end
