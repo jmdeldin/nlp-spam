@@ -1,4 +1,4 @@
-\documentclass[10pt]{article}
+\documentclass[draft,10pt]{article}
 \usepackage[utf8]{inputenc}
 \usepackage{fixltx2e}
 \usepackage{graphicx}
@@ -31,7 +31,7 @@ public image.
 
 One social network suffering from spam is
 AskNature\footnote{\url{http://www.asknature.org} }. AskNature is a free,
-online database of biomimetic\cite{benyus} solutions. Members can create a
+online database of biomimetic~\cite{benyus} solutions. Members can create a
 profile, comment on articles, create and read articles, and participate in
 forums. Unfortunately, spammers take advantage of the open user registration
 and inundate the site with illegitimate accounts, such as the one shown in
@@ -42,12 +42,12 @@ heuristics tools that check for links and HTML, but they are run only to
 detect profiles -- a human still inspects and bans users.
 
 \begin{figure}[b]
-\centering
-\includegraphics[width=\textwidth]{fig/spam-profile.png}
-\caption{This screenshot of a spam profile shows the "about" text the spammer
-enters, along with the first name ("hk"), last name ("stayin"), username
-("staying"), and the spammer's address.}
-\label{fig:spam-profile}
+  \centering
+  \includegraphics[width=\textwidth]{fig/spam-profile.png}
+  \caption{This screenshot of a spam profile shows the "about" text the spammer
+    enters, along with the first name ("hk"), last name ("stayin"), username
+    ("staying"), and the spammer's address.}
+  \label{fig:spam-profile}
 \end{figure}
 
 % FIXME: Check again
@@ -60,112 +60,122 @@ represented phonetically is more accurate than representing the words as
 themselves. Matching words based on their pronunciation should capture some
 misspellings, narrowing the search space of the classifier.
 
-  To test this, I performed the following experiments:
+To test this, I performed the following experiments:
 
 \begin{enumerate}
-  \item Determine the ratio of spam to ham yielding the highest accuracy
-  \item Determine the minimum number of characters for a biography yielding
-    the highest accuracy
-  \item Determine which n-gram model yields better results for both word and
-    character grams
-    Determine whether unigram with smoothing has an effect
+\item Determine the ratio of spam to ham yielding the highest accuracy
+\item Determine the minimum number of characters for a biography yielding
+  the highest accuracy
+\item Determine which n-gram model yields better results for both word and
+  character grams
+\item Determine whether smoothing probabilities improves accuracy in word-gram
+  models
 \end{enumerate}
 
 \section{Naive Bayes Classifier}
 The research presented here utilizes a naive Bayes classifier to classify spam
-and ham. These classifiers are very effective for classifying
-documents\cite[p182]{mitchell}, especially at spam
-classification\cite{which-nb}. In a naive Bayes classifier, each feature is
-assumed to be independent, which in text classification, assumes terms will
-independently occur in documents. In this paper, I used a bag-of-words model
-to capture the frequency of each word appearing in a document. In a later
-section, single-word (unigram) models are evaluated against bigrams, trigrams,
-and character-grams. For example, a bigram would count ``not spam'' as a term,
-instead of ``not'' and ``spam'', which may have different meaning in the
-document.
+and ham biographies. These classifiers are very effective for classifying
+documents~\cite[p182]{mitchell}, and they are widely used in email spam
+filters~\cite{which-nb}. This classifier uses the maximum a posteriori
+estimate to predict which class a document belongs to. The ``naive''
+assumption is that each attribute is independent of another, which simplifies
+computing a predicted class $v$ to
+\[ v = \argmax_{x\in X}\ \Pr(x)\prod_i{\Pr(a_i|x)}, \]
+where $X$ is the set of possible classes (e.g., spam and ham), and $a_i$ is an
+attribute (i.e., a term). The probability of an attribute given a class is
+often computed as a maximum likelihood estimate ({\sc mle}):
+\[ \Pr(a_i|x) = \frac{{\textsc{count}_x}(a_i)}{N_x}, \] where
+$\textsc{count}_x$ returns the number of occurrences of $a_i$ in the vector of
+attributes $<a_1, a_2, \ldots, a_d>$ belonging to class $x$, and $N_x$ is the total number of attributes
+for class $x$~\cite[p177]{mitchell}.
 
-One issue worth discussing is smoothing. The traditional naive Bayes estimates
-the probability of a document belonging to a class as the number of times an
-event occurs, $n_c$, over the total number of events $n$. When the number of
-times an event occurs is small, the probability might be 0, which might not be
-true. Thus, a smoothing parameter can be used. In this paper, we investigate
-the effect of LaPlace smoothing, which defines the probability of an event
-occurring as
+{\sc mle} is not without its faults. When the number of times an event occurs
+is small, the probability will be zero, which will overfit the data.
+Fortunately, additive smoothing (Laplace smoothing) combats this by adding a
+smoothing parameter $\alpha$:
+\[ \Pr(a_i|x) = \frac{{\textsc{count}}_x + \alpha}{N_x + \alpha d} \]
+% TODO: Find a replacement citation for ai-class.com
 
-\[ \Pr[\mathrm{x}] = \frac{{\sc count}(x) + k}{N + k\vert x \vert} \]
-
-where $x$ is the class, {\sc(count)}($x$) returns the number of items matching
-that class, $k$ is the smoothing parameter, $N$ is the total number of itmes,
-and $\vert x\vert$ returns the total number of options for that class. USe to
-avoid overfitting.
+In text classification, a bag-of-words model is typically used to capture the
+frequency of each term appearing in a document. The attributes/terms are words
+or characters broken up into $n$-grams, where a unigram corresponds to a
+single word (e.g., bag = \{``not'', ``secret''\}), a bigram corresponds to two
+words (e.g., bag = \{``not-secret''\}), etc.
 
 \section{Evaluation}
-$k$-fold cross-validation is used to compare the performance of the classifier
-with different models. The algorithm is described in
-Algorithm~\ref{algo:crossvalidation}. Cross-validation will return a confusion
-matrix -- a table of false positives (ham marked as spam), false negatives
-(spam marked as ham), true positives (spam), and true negatives
-(ham)\footnote{For brevity, $fp$ will denote a false positive, $tn$ will
-  denote a true negative, and so on.}.
+$k$-fold cross-validation, described in Algorithm~\ref{algo:crossvalidation},
+is used to compare the performance of the classifier with different models.
+Cross-validation will return a confusion matrix -- a table of false positives
+(ham marked as spam), false negatives (spam marked as ham), true positives
+(spam), and true negatives (ham)\footnote{For brevity, $fp$ will denote a
+  false positive, $tn$ will denote a true negative, and so on.}. This
+matrix results in the metrics summarized in Table~\ref{table:metrics}. In
+this paper, high accuracy is important because it will classify more spam and
+ham, but it should not come at the cost of low precision (i.e., more
+legitimate users marked as spammers).
 
-For determining an optimal classifier, we may consider the following metrics \cite{eval}:
+\begin{table}[t]
+  \centering
+  \caption{Summary of evaluation metrics~\cite{eval}. Fewer false positives
+    are represented by a higher precision, and fewer false negatives are
+    represented by a higher recall rate.}
+  \label{table:metrics}
+  \begin{tabular}{lcl}
+    \toprule
+    metric & formula & measures \\ \midrule
+  accuracy & $\frac{tp + tn}{tp + fp + fn + tn}$ & correctly predicted classes \\
+  precision & $\frac{tp}{tp + fp}$ & correctly predicted positive classes\\
+  recall & $\frac{tp}{tp + fn}$ & how sensitive the classifier is to input \\\bottomrule
+  \end{tabular}
+\end{table}
 
-\begin{description}
-\item[accuracy] $\frac{tp + tn}{tp + fp + fn + tn}$
-\item[precision] $\frac{tp}{tp + fp}$
-\item[recall] $\frac{tp}{tp + fn}$
-\end{description}
-
-Accuracy measures how well we correctly predict classes, precision
-measures how well we correctly make positive predictions (a higher precision
-means fewer false positives), and recall measures the sensitivity of the
-classifier (a higher recall means fewer false negatives). In this paper, we
-value models with a high accuracy and a high precision. We want to correctly
-classify as much spam as possible, but we do not want to mistake legitimate
-users for spammers as much as possible.
-
-
-\begin{algorithm}
-\caption{$k$-fold cross-validation described by \cite[p147]{mitchell}}
-\begin{algorithmic}
-\Function{CrossValidate}{data, $k$}
-\State partitions $\gets$ divide data into $k$ disjoint subsets
-\For{$i \gets 1 \to k$}
-\State{$T \gets$ data $\setminus\ \mathrm{partitions}_i$}
-\State{{\sc train}($T$)}
-\State{{\sc classify}($\mathrm{partitions}_i$)}
-\State \Return{confusion matrix}
-\EndFor
-\EndFunction
-\end{algorithmic}\label{algo:crossvalidation}
+\begin{algorithm}[b]
+  \caption{$k$-fold cross-validation described by~\cite[p147]{mitchell}}
+  \begin{algorithmic}
+    \Function{CrossValidate}{data, $k$}
+    \State partitions $\gets$ divide data into $k$ disjoint subsets
+    \For{$i \gets 1 \to k$}
+    \State{$T \gets$ data $\setminus\ \mathrm{partitions}_i$}
+    \State{{\sc train}($T$)}
+    \State{{\sc classify}($\mathrm{partitions}_i$)}
+    \State \Return{confusion matrix}
+    \EndFor
+    \EndFunction
+  \end{algorithmic}\label{algo:crossvalidation}
 \end{algorithm}
 
-\section{Data}
+\section{Corpus}
 The data consist of user biographies -- Unicode text fields -- spanning
-2008-09-03--2012-11-28. These profiles\footnote{I will use the terms
-  ``profile'' and ``biography'' interchangeably from this point forward.} are
-from AskNature's MySQL database, and the spam ones were manually annotated by
-AskNature staff during that period. Each entry was processed as described in
-Algorithm~\ref{algo:preprocess} before being saved to disk as plain text files
-for easier distribution. Empty profiles were not included.
+2008-09-03--2012-11-28. These profiles\footnote{``Profile'' and ``biography''
+  will be used interchangeably from this point forward.} are from AskNature's
+MySQL database, and the spam ones were manually annotated by AskNature staff
+during that period. Procuring the corpus involves the following steps:
 
-With data in hand, the next step is determining the minimum number of words a
-sample must contain for use in a classifier. As shown in
-Table~\ref{table:corpus-stats}, the data set includes more spam accounts than
-ham, and those spam accounts have fewer words per biography on average. The
-wide standard deviation for both classes is explained by two factors: Users
-are not required to fill out the biography field, and even if they choose to,
-no stated minimum or maximum requirements exist. We will use the floor of the
-minimum mean length, which is 32 words per biography. This prevents too much
-data from being rejected, but it whittles our samples down to 4,725 spam
-entries to 1,730 ham entries.
+\begin{enumerate}
+\item Select non-empty biographies from all active and banned (spam) users
+\item Sanitize each biography according to Algorithm~\ref{algo:preprocess}
+\item Save each biography to disk as plain text for easier distribution
+\item Determine the mean biography length
+\item Segment the samples into training and testing sets according to
+  Algorithm~\ref{algo:segment}
+\end{enumerate}
 
-Next, training and testing sets must be developed. The algorithm for doing
-such is described in Algorithm~\ref{algo:segment}. 100 randomly selected
-samples were set aside for testing from each class, which leaves 1,630 ham and
-4,625 spam entries for training.
+\subsection{Mean Biography Length}
+In order to maximize the performance of a classifier, appropriate documents
+must be selected. Empty samples are obviously not useful in classifying
+profiles, and samples with one or two words are unlikely to add reliable
+information. One way to determine a minimum count is to take the mean word
+counts across spam and ham samples. As shown in
+Table~\ref{table:corpus-stats}, the data include more spam accounts than ham,
+and those spam accounts have fewer words per biography on average. The wide
+standard deviation for both classes is explained by two factors: Users are not
+required to fill out the biography field, and even if they choose to, no
+stated length requirements exist. These results indicate the floor of the
+minimum mean should be used avoid rejecting too much data. Applying a minimum
+length of 32 words per biography reduces the samples down to 4,725 spam
+entries and 1,730 ham entries.
 
-\begin{table}
+\begin{table}[t]
   \centering
   \caption{Summary statistics for the non-empty biographies processed
     according to Algorithm~\ref{algo:preprocess}.}
@@ -179,33 +189,30 @@ samples were set aside for testing from each class, which leaves 1,630 ham and
   \end{tabular}
 \end{table}
 
-\begin{algorithm}
+\begin{algorithm}[b]
+  \begin{enumerate}
+  \item Sanitize all HTML by retaining just the \texttt{innerHTML} (the
+    content between start and closing tags). For example, \texttt{<a
+      href="http://example.com">link</a>} becomes \texttt{link}.
+  \item Remove all URLs
+  \item Replace excess whitespace with single spaces
+  \end{enumerate}
+  \caption{Preprocessing routine for biographies}
+  \label{algo:preprocess}
+\end{algorithm}
+
+\begin{algorithm}[t]
   \caption{Segmenting the data samples into training and test sets}
   \label{algo:segment}
   \begin{enumerate}
   \item Create a list of all profiles and randomize it
   \item Select all entries with biographies of 32 or more words
   \item For each class (ham and spam), randomly select 100 entries for testing
-    and write to a new \texttt{pruned/testing} directory
+    and write to a new \texttt{pruned/testing} directory.
   \item Write the remaining samples to \texttt{pruned/training}
   \end{enumerate}
 \end{algorithm}
 
-
-\begin{algorithm}
-\begin{enumerate}
-  \item Sanitize all HTML by retaining just the \texttt{innerHTML} (the
-    content between start and closing tags). For example, \texttt{<a
-      href="http://example.com">link</a>} becomes \texttt{link}.
-  \item Remove all URLs
-  \item Replace excess whitespace with single spaces
-\end{enumerate}
-\caption{Preprocessing routine for biographies}
-\label{algo:preprocess}
-\end{algorithm}
-
-Samples with fewer than five characters after cleaning were rejected, as there
-is little to be gained from matching an abbreviation or a single short word.
 
 \section{Methods}
 
@@ -217,32 +224,32 @@ An important first step is determining what ratio of spam
 To evaluate what ratio of spam to ham would yield a stronger classifier, the
 following test was performed.
 
-\begin{algorithm}
+\begin{algorithm}[b]
   \caption{Determine the ratio of spam:ham messages with the greatest accuracy.}
   \begin{algorithmic}
-  \Function{FindBestRatio}{samples, $n$}
-  \Comment{Takes a set of $n$ samples}
-  \State spam $\gets$ {\sc shuffle}(samples $\setminus $ ham)
-  \Comment{Randomizes the order of samples}
-  \State ham $\gets$ {\sc shuffle}(samples $\setminus $ spam)
-  \State best-accuracy $\gets 0$
-  \State best-ratio $\gets \emptyset$
-  \\
+    \Function{FindBestRatio}{samples, $n$}
+    \Comment{Takes a set of $n$ samples}
+    \State spam $\gets$ {\sc shuffle}(samples $\setminus $ ham)
+    \Comment{Randomizes the order of samples}
+    \State ham $\gets$ {\sc shuffle}(samples $\setminus $ spam)
+    \State best-accuracy $\gets 0$
+    \State best-ratio $\gets \emptyset$
+    \\
 
-  \For{$i \gets 0.0 \to 1.0$, step $\gets 0.01$}
-  \State ham-ratio $\gets ni$
-  \State spam-ratio $\gets n(1 - i)$
-  \State limited-samples $\gets$ {\sc take}(ham, ham-ratio) $\cup$ {\sc take}(spam, spam-ratio)
-  \\
+    \For{$i \gets 0.0 \to 1.0$, step $\gets 0.01$}
+    \State ham-ratio $\gets ni$
+    \State spam-ratio $\gets n(1 - i)$
+    \State limited-samples $\gets$ {\sc take}(ham, ham-ratio) $\cup$ {\sc take}(spam, spam-ratio)
+    \\
 
-  \State {\sc cross-validate}(limited-samples)
+    \State {\sc cross-validate}(limited-samples)
 
-  \If{accuracy $>$ best-accuracy}
-  \State{best-accuracy $\gets$ accuracy}
-  \State{best-ratio $\gets$ \{ham-ratio, spam-ratio\}}
-  \EndIf
-  \EndFor
-  \State \Return{best-ratio, best-accuracy}
+    \If{accuracy $>$ best-accuracy}
+    \State{best-accuracy $\gets$ accuracy}
+    \State{best-ratio $\gets$ \{ham-ratio, spam-ratio\}}
+    \EndIf
+    \EndFor
+    \State \Return{best-ratio, best-accuracy}
     \EndFunction
   \end{algorithmic}\label{algo}
 \end{algorithm}
@@ -251,15 +258,6 @@ following test was performed.
 
 5 iterations of 3000 cap. Mean and standard devs.
 \begin{tabular}{lllllllllllllll}
-step & meanAcc & sdAcc & meanPrec & sdPrec & meanRecall & sdRecall & meanTp & sdTp & meanTn & sdTn & meanFp & sdFp & meanFn & sdFn \\
-0.810 & 0.886 & 0.005 & 0.894 & 0.004 & 0.975 & 0.002 & 2370.000 & 5.568 & 289.333 & 9.815 & 280.667 & 9.815 & 60.000 & 5.568 \\
-0.820 & 0.881 & 0.004 & 0.894 & 0.003 & 0.969 & 0.001 & 2384.667 & 3.215 & 257.333 & 9.815 & 282.667 & 9.815 & 75.333 & 3.215 \\
-0.830 & 0.877 & 0.005 & 0.895 & 0.004 & 0.964 & 0.002 & 2400.333 & 5.859 & 229.333 & 10.017 & 280.667 & 10.017 & 89.667 & 5.859 \\
-0.840 & 0.871 & 0.004 & 0.896 & 0.003 & 0.958 & 0.001 & 2414.333 & 2.887 & 198.667 & 8.083 & 281.333 & 8.083 & 105.667 & 2.887 \\
-0.850 & 0.867 & 0.003 & 0.897 & 0.002 & 0.953 & 0.002 & 2431.333 & 4.933 & 169.667 & 4.933 & 280.333 & 4.933 & 118.667 & 4.933 \\
-0.860 & 0.862 & 0.004 & 0.898 & 0.001 & 0.948 & 0.004 & 2446.333 & 11.150 & 140.667 & 2.517 & 279.333 & 2.517 & 133.667 & 11.150 \\
-0.870 & 0.855 & 0.005 & 0.897 & 0.001 & 0.943 & 0.004 & 2460.000 & 10.817 & 106.333 & 3.215 & 283.667 & 3.215 & 150.000 & 10.817 \\
-0.880 & 0.850 & 0.005 & 0.896 & 0.001 & 0.938 & 0.006 & 2477.333 & 15.373 & 73.333 & 0.577 & 286.667 & 0.577 & 162.667 & 15.373
 \end{tabular}
 \subsubsection{Selection}
 \label{sec-2-2-2}
