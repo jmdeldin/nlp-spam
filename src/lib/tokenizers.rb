@@ -10,3 +10,8 @@ end
 def headers
   puts %w(tokenizer lp acc err prec recall tp tn fp fn total).join(',')
 end
+
+def print_row(tokr, lp, mat)
+  a = [tokr, lp] + mat.to_list
+  puts a.join(',')
+end

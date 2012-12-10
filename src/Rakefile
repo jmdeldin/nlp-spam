@@ -52,7 +52,7 @@ namespace :classifier do
   end
 
   desc 'Test every model'
-  task :eval do
-    sh "bin/eval-models data/objects > data/results/models-test.csv"
+  task :test do
+    sh "bin/test data/objects/training.obj data/objects/testing.obj > data/results/models-test.csv"
   end
 end

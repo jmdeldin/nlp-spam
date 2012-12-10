@@ -1,0 +1,36 @@
+#! /usr/bin/env ruby
+#
+# Reports confusion matrices for word-gram, character-gram, and phonetic-gram
+# models on the TESTING set.
+#
+
+require 'parallel'
+require_relative '../lib/cli'
+require_relative '../lib/classifier'
+require_relative '../lib/confusion'
+require_relative '../lib/tokenizers'
+
+usage(__FILE__, "TRAINING_OBJ TESTING_OBJ") if ARGV.size != 2
+
+training = Classifier.load(ARGV.shift)
+testing = Classifier.load(ARGV.shift)
+
+headers()
+
+Parallel.map(tokenizers(), :in_processes => 6) do |tokr|
+  smoothers().each do |lp|
+    STDERR.puts "tokr = #{tokr}, lp = #{lp}"
+    c = Classifier.fetch(lp, tokr).call()
+    Classifier.train_up(c, training)
+    mat = Confusion.new
+
+    testing.each do |s|
+      predicted = c.classify(s.value)
+      mat.save_prediction(predicted, s.kind)
+    end
+
+    mat.compute
+
+    print_row(tokr, lp, mat)
+  end
+end
