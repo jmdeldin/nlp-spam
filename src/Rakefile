@@ -45,12 +45,6 @@ namespace :analyze do
 end
 
 namespace :classifier do
-  desc 'Initialize and train a classifier'
-  task :train do
-    laplace
-    sh "bin/train data/objects/training.obj data/objects/classifier.obj"
-  end
-
   desc 'Cross-validate various models'
   task :cross do
     sh "bin/cross-val-models data/objects/training.obj > data/results/models-cv.csv"
