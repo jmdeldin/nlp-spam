@@ -7,6 +7,7 @@
 require_relative '../lib/cli'
 require_relative '../lib/classifier'
 require_relative '../lib/cross_validate'
+require_relative '../lib/tokenizers'
 
 usage(__FILE__, "TRAINING_OBJ") if ARGV.size != 1
 
