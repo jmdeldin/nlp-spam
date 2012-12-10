@@ -30,7 +30,7 @@ ham <- pluck(D, "ham")
 
 m1 <- report(spam)
 m2 <- report(ham)
-mall <- floor(min(m1, m2))
+mall <- round(min(m1, m2))
 
 print(paste("Min length =", mall, "words"))
 spamc <- countBy(spam, "spam")
