@@ -46,8 +46,13 @@ namespace :classifier do
     sh "bin/train data/objects/training.obj data/objects/classifier.obj"
   end
 
-  desc 'Evaluate various models'
+  desc 'Cross-validate various models'
+  task :cross do
+    sh "bin/cross-val-models data/objects/training.obj > data/results/models-cv.csv"
+  end
+
+  desc 'Test every model'
   task :eval do
-    sh "bin/eval-models data/objects/training.obj > data/results/all-models.csv"
+    sh "bin/eval-models data/objects > data/results/models-test.csv"
   end
 end
