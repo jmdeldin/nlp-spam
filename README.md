@@ -26,7 +26,7 @@ Preliminary Steps
 
 4. With the minimum length, segment the data into training and testing sets
 
-        min=32 rake data:segment
+        min=XXX rake data:segment
 
 5. Finally, serialize the data so it's faster to work with
 

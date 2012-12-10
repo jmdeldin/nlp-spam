@@ -15,7 +15,7 @@ namespace :data do
 
   desc 'Segment data into training and testing sets. Define min var beforehand'
   task :segment do
-    abort("run as min=32 rake data:segment") unless ENV['min']
+    abort("run as min=XXX rake data:segment") unless ENV['min']
     sh "bin/segment data/processed data/pruned #{ENV['min']} 100"
 
     %w(training testing).each do |type|
