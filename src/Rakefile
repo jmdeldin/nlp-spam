@@ -10,7 +10,7 @@ namespace :data do
 
   desc 'Collect the profile lengths of the processed samples'
   task :length do
-    sh "bin/length data/processed > data/results/body-length.csv"
+    sh "bin/body-length data/processed > data/results/body-length.csv"
   end
 
   desc 'Segment data into training and testing sets. Define min var beforehand'
