@@ -1,6 +1,6 @@
 #! /usr/bin/env ruby
 #
-# Serialize HTML file as Sample objects.
+# Determine the body length for all of the documents
 #
 
 require 'fileutils'
@@ -8,6 +8,7 @@ require 'pathname'
 require 'parallel'
 require_relative '../lib/sample'
 require_relative '../lib/cli'
+require_relative '../lib/extensions'
 
 if $0 == __FILE__
   abort "Usage: #{File.basename(__FILE__)} HTML_DIR" unless ARGV.size == 1
@@ -21,7 +22,7 @@ if $0 == __FILE__
   end
 
   samples.each do |s|
-    len = s.value.split(/[\s-]/).size
+    len = s.value.to_words.size
     puts "#{s.kind},#{len}"
   end
 end
