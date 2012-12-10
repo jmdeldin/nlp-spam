@@ -45,4 +45,9 @@ namespace :classifier do
     laplace
     sh "bin/train data/objects/training.obj data/objects/classifier.obj"
   end
+
+  desc 'Evaluate various models'
+  task :eval do
+    sh "bin/eval-models data/objects/training.obj > data/results/all-models.csv"
+  end
 end

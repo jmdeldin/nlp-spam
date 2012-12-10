@@ -1,0 +1,30 @@
+#! /usr/bin/env ruby
+#
+# Reports confusion matrices for word-gram, character-gram, and phonetic-gram
+# models.
+#
+
+require_relative '../lib/cli'
+require_relative '../lib/classifier'
+require_relative '../lib/cross_validate'
+
+usage(__FILE__, "TRAINING_OBJ") if ARGV.size != 1
+
+tokenizers = [:unigram, :bigram, :trigram, :metaphone, :bimetaphone] + (1..12).to_a
+
+smoothers = (0..1)
+k = 10
+
+training = Classifier.load(ARGV.shift)
+
+puts %w(tokenizer lp acc err prec recall tp tn fp fn total).join(',')
+
+tokenizers.each do |tokr|
+  smoothers.each do |lp|
+    STDERR.puts "tokr = #{tokr}, lp = #{lp}"
+    c = Classifier.fetch(lp, tokr)
+    cv = CrossValidate.run(training, c, k)
+
+    puts [tokr, lp, cv[:accuracy], cv[:error], cv[:precision], cv[:recall], cv[:true_pos], cv[:true_neg], cv[:false_pos], cv[:false_neg], cv[:total]].join(",")
+  end
+end
