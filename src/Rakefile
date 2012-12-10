@@ -28,7 +28,7 @@ namespace :data do
   desc 'Marshal data into Ruby objects on the filesystem'
   task :marshal do
     mkdir_p "data/objects"
-    sh "bin/marshal data data/objects"
+    sh "bin/marshal data/pruned data/objects"
   end
 end
 
