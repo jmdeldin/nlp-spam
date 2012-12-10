@@ -9,6 +9,7 @@ require 'pathname'
 require 'parallel'
 
 require_relative '../lib/cleaner'
+require_relative '../lib/extensions'
 
 # Returns an SQL query to fetch all users by a status (0 = active, 6 = spam)
 # before a certain date.
@@ -35,12 +36,12 @@ end
 
 def process(dbh, base_dir, test_limit, min_chars)
   {:ham => 0, :spam => 6}.each do |klass, status|
-    train_dir = create_dir("processed/#{klass}")
+    train_dir = create_dir("#{base_dir}/processed/#{klass}")
 
     Parallel.map(dbh[user_sql(status)], :in_threads => 200) do |row|
       filename = row[:masterid] + '.html'
       body = Cleaner.clean_html(row[:special_text].force_encoding('utf-8'))
-      next if body.split(/[\s-]/).size == 0
+      next if body.to_words.size == 0
 
       dir = train_dir
       File.open(File.join(dir, filename), 'w') { |f| f.puts body }
