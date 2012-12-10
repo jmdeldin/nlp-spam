@@ -1,5 +1,5 @@
 class String
   def to_words
-    split(/[\s-]/)
+    scan(/[a-z']/i)
   end
 end
