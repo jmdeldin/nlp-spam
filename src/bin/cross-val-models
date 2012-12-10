@@ -9,15 +9,18 @@ require_relative '../lib/classifier'
 require_relative '../lib/cross_validate'
 require_relative '../lib/tokenizers'
 
-usage(__FILE__, "TRAINING_OBJ") if ARGV.size != 1
+usage(__FILE__, "TRAINING_OBJ") if ARGV.size < 1
 
 k = 10
 
 training = Classifier.load(ARGV.shift)
 
+which = ARGV.shift
+which = which ? which.to_sym : nil
+
 headers()
 
-tokenizers().each do |tokr|
+tokenizers(which).each do |tokr|
   smoothers().each do |lp|
     STDERR.puts "tokr = #{tokr}, lp = #{lp}"
     c = Classifier.fetch(lp, tokr)

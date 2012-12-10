@@ -2,7 +2,7 @@ require_relative 'vendor/ankusa/lib/ankusa/stopwords'
 
 class String
   def to_words
-    scan(/[a-z']/i)
+    scan(/[a-z']+/i)
   end
 end
 

@@ -1,6 +1,16 @@
 # List of all available tokenizers
-def tokenizers
-  [:unigram, :bigram, :trigram, :metaphone, :bimetaphone] + (1..6).to_a
+def tokenizers(which=nil)
+  kinds = {
+    :words => [:unigram, :bigram, :trigram],
+    :chars => (1..5).to_a,
+    :phono => [:metaphone, :bimetaphone],
+  }
+
+  if which
+    kinds[which]
+  else
+    kinds.values.flatten
+  end
 end
 
 def smoothers

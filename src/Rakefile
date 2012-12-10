@@ -37,6 +37,11 @@ namespace :analyze do
   task :length do
     rscript 'body-length.R'
   end
+
+  desc 'Analyze data/results/models-*.csv'
+  task :models do
+    rscript 'best-model.R'
+  end
 end
 
 namespace :classifier do
