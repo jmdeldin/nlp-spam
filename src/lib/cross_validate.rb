@@ -1,5 +1,6 @@
 require 'parallel'
 require_relative 'sample'
+require_relative 'confusion'
 
 # Cross-validates a classifier
 #
@@ -18,13 +19,7 @@ module CrossValidate
     #
     # k = number of folds as a percentage (e.g., 10 == 10% of data is used for testing)
     def run(data, classifier_proc, k=10)
-      confusion = {
-        :true_pos  => 0, # spam
-        :true_neg  => 0, # ham
-        :false_pos => 0, # ham marked as spam
-        :false_neg => 0, # spam marked as ham
-      }
-
+      confusion = Confusion.new
       k = data.size / k # as a percentage
       partitions = data.each_slice(k).to_a
 
@@ -45,7 +40,7 @@ module CrossValidate
         o = []
         part.each do |x|
           prediction = classifier.classify x.value
-          o << key_for(prediction, x.kind)
+          o << confusion.key_for(prediction, x.kind)
         end
         o
       end
@@ -53,13 +48,7 @@ module CrossValidate
       # count our keys
       results.each { |set| set.each { |key| confusion[key] += 1 } }
 
-      confusion.tap { |mat|
-        mat[:total]     = mat.values.reduce(:+)
-        mat[:accuracy]  = (mat[:true_pos] + mat[:true_neg]) / Float(mat[:total])
-        mat[:error]     = ((1.0 - mat[:accuracy]) * 100).round(2)
-        mat[:precision] = mat[:true_pos] / Float(mat[:true_pos] + mat[:false_pos])
-        mat[:recall]    = mat[:true_pos] / Float(mat[:true_pos] + mat[:false_neg])
-      }
+      confusion.compute
     end
 
     # Returns the confusion matrix key for a predicted value and the actual.
